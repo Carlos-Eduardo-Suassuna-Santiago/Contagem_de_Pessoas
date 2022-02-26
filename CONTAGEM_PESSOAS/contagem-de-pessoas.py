@@ -30,6 +30,7 @@ xy2 = (300, posL)  # largura da linha
 up = 0
 down = 0
 total = 0
+contador = 0
 
 if cap.isOpened():  # testa se o python se conectou a webcan
     validacao, frame = cap.read()  # lê a informação que está na variavel cap
@@ -49,7 +50,7 @@ if cap.isOpened():  # testa se o python se conectou a webcan
         # variavel que vai dilatar os objetos da imagem deixando eles maiores
         dilation = cv2.dilate(opening, kernel, iterations=8)
         # variavel para remover o noise de dentro da figura na imagem
-        closing = cv2.morphologyEx(dilation, cv2.MORPH_CLOSE, kernel, iterations=8)
+        closing = cv2.morphologyEx(dilation, cv2.MORPH_CLOSE, kernel, iterations=4)
         # remover os contornos da imagem binaria do closing
         contours, hierachy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -65,14 +66,15 @@ if cap.isOpened():  # testa se o python se conectou a webcan
         for cnt in contours:
             # pegando o tamanho e a area dos contornos
             (x, y, w, h) = cv2.boundingRect(cnt)
-            area = cv2.contourArea(cnt)
-
+            area = cv2.contourArea(cnt)   
+            #contador = len(contours) 
+        
             # condição para ignorar alguns pequenos ruidos na imagem que possam atrapalhar na detecção das pessoas
             if int(area) > 3000:
                 # centro do contorno
                 centro = center(x, y, w, h)
                 # comando para atribuir o id as pessoas e diferencialas
-                cv2.putText(frame, str(i), (x+5, y+15),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+                #cv2.putText(frame, str(i), (x+5, y+15),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
                 cv2.circle(frame, centro, 4, (0, 0, 255), -1) 
                 # contorno na imagem
                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
@@ -86,6 +88,7 @@ if cap.isOpened():  # testa se o python se conectou a webcan
                 else:
                     detects[i].clear()
                 i += 1
+        contador = len(contours)
 
         # condição que checa se não tem nenhum elemento na imagem
         if len(contours) == 0:
@@ -120,6 +123,14 @@ if cap.isOpened():  # testa se o python se conectou a webcan
         cv2.putText(frame, "TOTAL: "+str(total), (10, 20),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
         cv2.putText(frame, "SUBINDO: "+str(up), (10, 40),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         cv2.putText(frame, "DESCENDO: "+str(down), (10, 60),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+        
+        if contador <=2:
+            cv2.putText(frame, "QUANTIDADE DE PESSOAS: "+str(contador)+"       "+"SEGURO", (10, 280), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 150, 0), 2)
+        elif contador > 2 and contador < 4:
+            cv2.putText(frame, "QUANTIDADE DE PESSOAS: "+str(contador)+"       "+"ALERTA", (10, 280), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 200, 200), 2)
+        else:
+            cv2.putText(frame, "QUANTIDADE DE PESSOAS: "+str(contador)+"       "+"PERIGO", (10, 280), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+            
 
         # mostra na tela uma janela com o titulo e a imagem da camera
         cv2.imshow("Video", frame)
