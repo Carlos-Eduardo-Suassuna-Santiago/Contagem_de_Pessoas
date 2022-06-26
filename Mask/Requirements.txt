@@ -1,5 +1,0 @@
-opencv
-numpy
-pandas
-matplotlib
-sklearn
